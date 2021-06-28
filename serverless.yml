@@ -21,8 +21,17 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs14.x
   region: sa-east-1
+  runtime: nodejs14.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: '*'
 
 functions:
     generateCertificate:
@@ -32,6 +41,24 @@ functions:
             path: /generateCertificate
             method: POST
             cors: true
+      iamRolestatements:
+        - Effect: Allow
+          Action:
+            - dynamo:Query
+            - dynamo:PutItem
+          Resource: 'arn:aws:dynamodb:${self.provider.region}:*:table/users_certificates'
+    verifyCertificate:
+      handler: src/functions/verifyCertificate.handle
+      events:
+        - http:
+            path: /verifyCertificate
+            method: GET
+            cors: true
+      iamRolestatements:
+        - Effect: Allow
+          Action:
+            - dynamo:Query
+          Resource: 'arn:aws:dynamodb:${self.provider.region}:*:table/users_certificates'
 
 resources:
   Resources:
